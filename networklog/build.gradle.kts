@@ -1,6 +1,34 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    id("maven-publish")
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                from(components["release"])
+                // 发布坐标配置
+                groupId = "com.github.wang"   // 用于 JitPack 的建议 ID，可修改
+                artifactId = "networklog"
+                version = "1.0.0"
+
+                // 添加 pom 信息（可选，有助于发布到公共仓库）
+                pom {
+                    name.set("AndroidNetworkLogPlugin")
+                    description.set("A network log inspector for Android like vConsole.")
+                    url.set("https://github.com/wang/AndroidNetworkLogPlugin")
+                    licenses {
+                        license {
+                            name.set("The MIT License")
+                            url.set("https://opensource.org/licenses/MIT")
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 android {
