@@ -24,9 +24,32 @@
 
 ## 🛠️ 集成指南
 
-### 1. 添加依赖
+### 1. 添加 JitPack 仓库
 
-在你的项目 `settings.gradle.kts` 或 `build.gradle` 中包含该模块。目前为本地模块集成：
+在你的项目根目录 `settings.gradle.kts` 或 `build.gradle` 中添加 JitPack 仓库地址：
+
+```kotlin
+// settings.gradle.kts
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") } // ⬅️ 添加这一行
+    }
+}
+```
+
+### 2. 添加依赖
+
+在 `app/build.gradle.kts` 中添加插件依赖：
+
+```kotlin
+dependencies {
+    // 请将 YOUR_GITHUB_USER 替换为你的 GitHub 用户名
+    implementation("com.github.YOUR_GITHUB_USER:AndroidNetworkLogPlugin:1.0.0")
+}
+```
 
 ```kotlin
 // 在 app/build.gradle.kts 中添加
@@ -35,9 +58,9 @@ dependencies {
 }
 ```
 
-### 2. 初始化插件
+### 3. 初始化插件
 
-在你的 `Application` 类中初始化插件：
+在你的 `Application` 类中初始化：
 
 ```kotlin
 class MyApplication : Application() {
@@ -51,7 +74,7 @@ class MyApplication : Application() {
 }
 ```
 
-### 3. 配置 OkHttp 拦截器
+### 4. 配置 OkHttp 拦截器
 
 将插件提供的拦截器添加到你的 `OkHttpClient` 中：
 
