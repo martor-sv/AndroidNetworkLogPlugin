@@ -47,7 +47,7 @@ dependencyResolutionManagement {
 ```kotlin
 dependencies {
     // 请将 YOUR_GITHUB_USER 替换为你的 GitHub 用户名
-    implementation("com.github.YOUR_GITHUB_USER:AndroidNetworkLogPlugin:1.0.0")
+    implementation("com.github.martor-sv:AndroidNetworkLogPlugin:1.0.0")
 }
 ```
 
