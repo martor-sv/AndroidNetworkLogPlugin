@@ -21,4 +21,9 @@
     <!-- 强调色：采用清爽的高对比浅蓝色 -->
     <color name="net_accent">#00B0FF</color>
     <color name="net_accent_light">#81D4FA</color>
+
+
+<!--    白色-->
+    <color name="net_white">#FFFFFF</color>
+
 </resources>
