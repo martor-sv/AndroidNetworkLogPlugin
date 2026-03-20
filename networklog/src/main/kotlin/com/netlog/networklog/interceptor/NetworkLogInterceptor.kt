@@ -2,11 +2,8 @@ package com.netlog.networklog.interceptor
 
 import com.netlog.networklog.model.NetworkRecord
 import com.netlog.networklog.repository.NetworkLogRepository
-import okhttp3.Interceptor
-import okhttp3.MediaType
-import okhttp3.Response
-import okhttp3.ResponseBody
-// 移除 internal 依赖以增强版本兼容性
+import okhttp3.*
+import com.netlog.networklog.util.NetworkLogCompat
 import okio.Buffer
 import okio.GzipSource
 import okio.buffer
@@ -14,120 +11,148 @@ import java.io.EOFException
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
-/**
- * OkHttp 网络日志拦截器
- * 添加到 OkHttpClient 后，自动记录所有请求和响应
- */
+@Suppress("DEPRECATION_ERROR", "DEPRECATION")
 class NetworkLogInterceptor : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
 
-        // 读取请求体
-        val requestBodyString = request.body?.let { body ->
-            val buffer = Buffer()
-            try {
-                body.writeTo(buffer)
-                buffer.readString(charset(request) ?: StandardCharsets.UTF_8)
-            } catch (e: Exception) {
-                "[无法读取请求体: ${e.message}]"
+        // 防御性读取请求信息
+        var recordId: Long? = null
+        try {
+            val requestBodyString = (NetworkLogCompat.requestBody(request) as? RequestBody)?.let { body ->
+                val buffer = Buffer()
+                try {
+                    body.writeTo(buffer)
+                    buffer.readString(charset(request) ?: StandardCharsets.UTF_8)
+                } catch (t: Throwable) {
+                    "[读取请求体失败: ${t.message}]"
+                }
             }
+
+            val requestHeaders = mutableMapOf<String, String>()
+            val requestHeadersObj = NetworkLogCompat.requestHeaders(request)
+            if (requestHeadersObj != null) {
+                for (i in 0 until NetworkLogCompat.headersSize(requestHeadersObj)) {
+                    requestHeaders[requestHeadersObj.name(i)] = requestHeadersObj.value(i)
+                }
+            }
+
+            val record = NetworkRecord(
+                method = NetworkLogCompat.requestMethod(request) ?: "UNKNOWN",
+                url = NetworkLogCompat.requestUrl(request)?.toString() ?: "UNKNOWN",
+                requestHeaders = requestHeaders,
+                requestBody = requestBodyString,
+                requestBodySize = (NetworkLogCompat.requestBody(request) as? RequestBody)?.contentLength() ?: 0L
+            )
+            recordId = record.id
+            NetworkLogRepository.addRecord(record)
+        } catch (t: Throwable) {
+            // 日志记录失败，不应影响正常请求
         }
 
-        // 构建请求头 Map（使用传统循环以兼容 OkHttp 3.x）
-        val requestHeaders = mutableMapOf<String, String>()
-        for (i in 0 until request.headers.size) {
-            requestHeaders[request.headers.name(i)] = request.headers.value(i)
+        val response: Response
+        try {
+            response = chain.proceed(request)
+        } catch (e: Throwable) {
+            // 网络层异常，记录并抛出
+            recordId?.let { id ->
+                NetworkLogRepository.updateRecord(id) { rec ->
+                    rec.error = e.message ?: e.javaClass.simpleName
+                    rec.endTime = System.currentTimeMillis()
+                }
+            }
+            throw e
         }
 
-        val record = NetworkRecord(
-            method = request.method,
-            url = request.url.toString(),
-            requestHeaders = requestHeaders,
-            requestBody = requestBodyString,
-            requestBodySize = request.body?.contentLength() ?: 0L
-        )
-        NetworkLogRepository.addRecord(record)
-
-        return try {
-            val response = chain.proceed(request)
+        try {
             val endTime = System.currentTimeMillis()
-
-            // 读取响应体（不消耗原始流）
             val responseBodyString = if (shouldHasBody(response)) {
                 readResponseBody(response)
             } else null
 
-            // 构建响应头 Map
             val responseHeaders = mutableMapOf<String, String>()
-            for (i in 0 until response.headers.size) {
-                responseHeaders[response.headers.name(i)] = response.headers.value(i)
+            val respHeadersObj = NetworkLogCompat.responseHeaders(response)
+            if (respHeadersObj != null) {
+                for (i in 0 until NetworkLogCompat.headersSize(respHeadersObj)) {
+                    responseHeaders[respHeadersObj.name(i)] = respHeadersObj.value(i)
+                }
             }
 
-            NetworkLogRepository.updateRecord(record.id) { rec ->
-                rec.statusCode = response.code
-                rec.responseHeaders = responseHeaders
-                rec.responseBody = responseBodyString
-                rec.responseBodySize = response.body?.contentLength() ?: 0L
-                rec.endTime = endTime
+            recordId?.let { id ->
+                NetworkLogRepository.updateRecord(id) { rec ->
+                    rec.statusCode = NetworkLogCompat.responseCode(response)
+                    rec.responseHeaders = responseHeaders
+                    rec.responseBody = responseBodyString
+                    rec.responseBodySize = NetworkLogCompat.responseBody(response)?.contentLength() ?: 0L
+                    rec.endTime = endTime
+                }
             }
 
-            // 重建响应体，避免流被消耗
-            val newBody = ResponseBody.create(
-                response.body?.contentType(),
+            val newBody = NetworkLogCompat.createResponseBody(
+                NetworkLogCompat.responseBody(response)?.contentType(),
                 responseBodyString ?: ""
             )
-            response.newBuilder().body(newBody).build()
-        } catch (e: Exception) {
-            NetworkLogRepository.updateRecord(record.id) { rec ->
-                rec.error = e.message ?: e.javaClass.simpleName
-                rec.endTime = System.currentTimeMillis()
+            return if (newBody != null) {
+                response.newBuilder().body(newBody).build()
+            } else {
+                response
             }
-            throw e
+        } catch (t: Throwable) {
+            // 响应解析失败，直接返回原始 response
+            return response
         }
     }
 
     private fun charset(request: okhttp3.Request): Charset? {
-        return request.body?.contentType()?.charset(StandardCharsets.UTF_8)
+        return (NetworkLogCompat.requestBody(request) as? RequestBody)?.contentType()?.charset(StandardCharsets.UTF_8)
     }
 
     private fun readResponseBody(response: Response): String? {
-        val responseBody = response.body ?: return null
-        val source = responseBody.source()
-        source.request(Long.MAX_VALUE)
-        var buffer = source.buffer
+        return try {
+            val responseBody = NetworkLogCompat.responseBody(response) ?: return null
+            val source = responseBody.source()
+            source.request(Long.MAX_VALUE)
+            var buffer = NetworkLogCompat.getBuffer(source)
 
-        // 处理 gzip
-        val contentEncoding = response.header("Content-Encoding")
-        if ("gzip".equals(contentEncoding, ignoreCase = true)) {
-            val decompressedBuffer = Buffer()
-            GzipSource(buffer.clone()).use { gzippedSource ->
-                gzippedSource.buffer().use { bufferedGzip ->
-                    bufferedGzip.request(Long.MAX_VALUE)
-                    decompressedBuffer.writeAll(bufferedGzip)
+            // 处理 gzip
+            val contentEncoding = NetworkLogCompat.header(response, "Content-Encoding")
+            if ("gzip".equals(contentEncoding, ignoreCase = true)) {
+                val decompressedBuffer = Buffer()
+                try {
+                    GzipSource(buffer.clone()).use { gzippedSource ->
+                        gzippedSource.buffer().use { bufferedGzip ->
+                            bufferedGzip.request(Long.MAX_VALUE)
+                            decompressedBuffer.writeAll(bufferedGzip)
+                        }
+                    }
+                    buffer = decompressedBuffer
+                } catch (t: Throwable) {
+                    // gzip 解压失败
                 }
             }
-            buffer = decompressedBuffer
-        }
 
-        if (buffer.size == 0L) return ""
+            if (NetworkLogCompat.bufferSize(NetworkLogCompat.getBuffer(source)) == 0L) return ""
 
-        val contentType: MediaType? = responseBody.contentType()
-        val charset: Charset = contentType?.charset(StandardCharsets.UTF_8) ?: StandardCharsets.UTF_8
+            val contentType: MediaType? = responseBody.contentType()
+            val charset: Charset = contentType?.charset(StandardCharsets.UTF_8) ?: StandardCharsets.UTF_8
 
-        if (!isPlaintext(buffer)) return "[二进制数据]"
+            if (!isPlaintext(buffer)) return "[二进制数据]"
 
-        return try {
-            buffer.clone().readString(charset)
-        } catch (e: Exception) {
-            "[读取失败: ${e.message}]"
+            try {
+                buffer.clone().readString(charset)
+            } catch (t: Throwable) {
+                "[读取失败: ${t.message}]"
+            }
+        } catch (t: Throwable) {
+            "[响应解析崩溃: ${t.javaClass.simpleName}]"
         }
     }
 
     private fun isPlaintext(buffer: Buffer): Boolean {
         return try {
             val prefix = Buffer()
-            val byteCount = minOf(buffer.size, 64)
+            val byteCount = minOf(NetworkLogCompat.bufferSize(buffer), 64)
             buffer.copyTo(prefix, 0, byteCount)
             for (i in 0 until 16) {
                 if (prefix.exhausted()) break
@@ -137,19 +162,20 @@ class NetworkLogInterceptor : Interceptor {
                 }
             }
             true
-        } catch (e: EOFException) {
+        } catch (t: Throwable) {
             false
         }
     }
 
     private fun shouldHasBody(response: Response): Boolean {
-        if (response.request.method == "HEAD") return false
-        val code = response.code
-        if ((code < 200 || code == 204 || code == 304) && response.header("Content-Length") == null &&
-            !"chunked".equals(response.header("Transfer-Encoding"), ignoreCase = true)
-        ) {
-            return false
+        return try {
+            val request = NetworkLogCompat.request(response)
+            if (NetworkLogCompat.requestMethod(request) == "HEAD") return false
+            val code = NetworkLogCompat.responseCode(response)
+            !((code < 200 || code == 204 || code == 304) && NetworkLogCompat.header(response, "Content-Length") == null &&
+                !"chunked".equals(NetworkLogCompat.header(response, "Transfer-Encoding"), ignoreCase = true))
+        } catch (t: Throwable) {
+            false
         }
-        return true
     }
 }
