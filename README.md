@@ -4,8 +4,10 @@
 
 ## 🌟 功能特性
 
-- 🚀 **零配置接入**：简单几行代码即可集成。
-- 📊 **列表展示**：实时显示 HTTP 方法、URL、状态码（颜色区分）、耗时、Body 大小。
+- 🚀 **极简接入**：支持一行代码 `open()` 快速启动权限检查与初始化。
+✅ **极致兼容**：深度适配 OkHttp 3.x/4.x/5.x 及 Okio 1.x/2.x，解决所有已知版本冲突崩溃。
+🔧 **防弹级健壮性**：全 Throwable 捕获，确保插件异常绝不阻断业务请求。
+📊 **列表展示**：实时显示 HTTP 方法、URL、状态码（颜色区分）、耗时、Body 大小。
 - 🔍 **关键词过滤**：支持通过 URL 关键词实时筛选请求。
 - 📄 **详情展示**：
   - **Overview**: 基本请求信息汇总。
@@ -45,9 +47,8 @@ dependencyResolutionManagement {
 在 `app/build.gradle.kts` 中添加插件依赖：
 
 ```kotlin
-dependencies {
-    // 请将 YOUR_GITHUB_USER 替换为你的 GitHub 用户名
-    implementation("com.github.martor-sv:AndroidNetworkLogPlugin:1.0.0")
+    // 使用最新的稳定版
+    implementation("com.github.martor-sv:AndroidNetworkLogPlugin:1.0.5")
 }
 ```
 
@@ -58,18 +59,23 @@ dependencies {
 }
 ```
 
-### 3. 初始化插件
+### 3. 一键启动 (推荐)
 
-在你的 `Application` 类中初始化：
+在你的 Activity 按钮点击事件或初始化逻辑中直接启动：
+
+```kotlin
+// 自动完成：权限检查 -> 权限申请跳转 -> 环境初始化 -> 显示悬浮窗
+NetworkLogPlugin.open(this)
+```
+
+或使用传统的 `Application` 初始化：
 
 ```kotlin
 class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        // 建议仅在 Debug 环境下开启
-        if (BuildConfig.DEBUG) {
-            NetworkLogPlugin.install(this)
-        }
+        // 自动安装并按需显示
+        NetworkLogPlugin.install(this)
     }
 }
 ```
@@ -93,6 +99,9 @@ val okHttpClient = OkHttpClient.Builder()
 ## ⌨️ 常用 API
 
 ```kotlin
+// 一键启动（含权限处理、初始化及显示）
+NetworkLogPlugin.open(context)
+
 // 获取单例拦截器
 NetworkLogPlugin.getInterceptor()
 
