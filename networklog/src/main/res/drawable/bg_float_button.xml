@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="oval">
-    <solid android:color="#1E90FF" />
-    <stroke android:width="2dp" android:color="#4DAAFF" />
-</shape>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 发光边框/阴影投影层 -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#3300B0FF" />
+            <padding android:bottom="2dp" android:left="2dp" android:right="2dp" android:top="2dp" />
+        </shape>
+    </item>
+
+    <!-- 主按钮背景层 (渐变色让其更具活力) -->
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:angle="45"
+                android:startColor="#0091EA"
+                android:endColor="#00B0FF"
+                android:type="linear" />
+            <stroke
+                android:width="1.5dp"
+                android:color="#B3E5FC" />
+        </shape>
+    </item>
+</layer-list>

@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 背景色 -->
-    <color name="net_bg">#1A1A1A</color>
-    <color name="net_toolbar">#222222</color>
+    <!-- 基础背景层级：通过细微色差拉开空间感 -->
+    <color name="net_bg">#121212</color>
+    <color name="net_toolbar">#1F1F1F</color>
     <color name="net_item_bg">#1E1E1E</color>
+    <color name="net_card_bg">#252525</color>
 
     <!-- 状态颜色 -->
-    <color name="net_success">#4CAF50</color>
-    <color name="net_error">#F44336</color>
-    <color name="net_pending">#FFC107</color>
+    <color name="net_success">#00E676</color>
+    <color name="net_error">#FF5252</color>
+    <color name="net_pending">#FFD600</color>
 
-    <!-- HTTP 方法颜色 -->
-    <color name="net_method_get">#2196F3</color>
-    <color name="net_method_post">#FF9800</color>
-    <color name="net_method_put">#9C27B0</color>
-    <color name="net_method_delete">#F44336</color>
-    <color name="net_method_other">#607D8B</color>
+    <!-- HTTP 方法颜色 (更鲜亮以适配深色背景) -->
+    <color name="net_method_get">#00B0FF</color>
+    <color name="net_method_post">#00E676</color>
+    <color name="net_method_put">#FFD600</color>
+    <color name="net_method_delete">#FF5252</color>
+    <color name="net_method_other">#BDBDBD</color>
 
-    <!-- 强调色 -->
-    <color name="net_accent">#1E90FF</color>
+    <!-- 强调色：采用清爽的高对比浅蓝色 -->
+    <color name="net_accent">#00B0FF</color>
+    <color name="net_accent_light">#81D4FA</color>
 </resources>
