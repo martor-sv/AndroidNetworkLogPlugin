@@ -1,0 +1,50 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+# Gradle files
+.gradle/
+build/
+# IntelliJ IDEA files
+.idea/
+*.iml
+*.iws
+*.ipr
+# Android Studio files
+*.jks
+*.keystore
+# NDK
+obj/
+# OS X
+.DS_Store
+# Maven logs
+build.log
+# Backup files
+*.bak
+*.swp
+*~
+# Logs
+*.log
+# Crashlytics
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+# Flutter
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache
+.pub
+/app/build
+/networklog/build

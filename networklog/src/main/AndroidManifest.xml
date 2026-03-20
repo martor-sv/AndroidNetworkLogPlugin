@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application>
+        <activity
+            android:name=".ui.NetworkLogActivity"
+            android:theme="@style/Theme.NetworkLog"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.NetworkLogDetailActivity"
+            android:theme="@style/Theme.NetworkLog"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <service
+            android:name=".ui.FloatingWindowService"
+            android:exported="false" />
+    </application>
+
+</manifest>

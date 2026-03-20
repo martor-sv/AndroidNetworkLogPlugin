@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 暗色主题，继承 Material DayNight -->
+    <style name="Theme.NetworkLog" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/net_toolbar</item>
+        <item name="colorPrimaryDark">@color/net_bg</item>
+        <item name="colorAccent">@color/net_accent</item>
+        <item name="android:windowBackground">@color/net_bg</item>
+        <item name="tabTextColor">#AAAAAA</item>
+        <item name="tabSelectedTextColor">#FFFFFF</item>
+        <item name="tabIndicatorColor">@color/net_accent</item>
+    </style>
+</resources>
