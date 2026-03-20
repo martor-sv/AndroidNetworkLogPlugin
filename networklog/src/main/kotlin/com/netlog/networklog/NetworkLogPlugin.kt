@@ -28,16 +28,30 @@ object NetworkLogPlugin {
      * @param application Application 实例
      * @param showFloating 是否立即显示悬浮窗（默认 true）
      */
+    @JvmStatic
     fun install(application: Application, showFloating: Boolean = true) {
-        applicationContext = application
+        applicationContext = application.applicationContext
         if (showFloating) {
-            showFloatingWindow(application)
+            showFloatingWindow(applicationContext!!)
         }
+    }
+
+    /**
+     * 一键式启动：权限检查 -> 申请（如有必要） -> 显示悬浮控
+     * 适合在“开启日志”按钮的点击事件中一行代码调用
+     */
+    @JvmStatic
+    fun open(context: Context) {
+        if (applicationContext == null) {
+            applicationContext = context.applicationContext
+        }
+        showFloatingWindow(context)
     }
 
     /**
      * 获取 OkHttp 拦截器，添加到 OkHttpClient.Builder
      */
+    @JvmStatic
     fun getInterceptor(): NetworkLogInterceptor = _interceptor
 
     /**
@@ -71,6 +85,7 @@ object NetworkLogPlugin {
     /**
      * 检查是否有悬浮窗权限
      */
+    @JvmStatic
     fun hasOverlayPermission(context: Context): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Settings.canDrawOverlays(context)
@@ -82,6 +97,7 @@ object NetworkLogPlugin {
     /**
      * 清除所有日志
      */
+    @JvmStatic
     fun clearLogs() {
         NetworkLogRepository.clearAll()
     }
@@ -89,6 +105,7 @@ object NetworkLogPlugin {
     /**
      * 停止悬浮窗
      */
+    @JvmStatic
     fun dismiss(context: Context) {
         val intent = Intent(context, FloatingWindowService::class.java)
         context.stopService(intent)
