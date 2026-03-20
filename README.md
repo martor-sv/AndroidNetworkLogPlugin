@@ -9,12 +9,10 @@
 🔧 **防弹级健壮性**：全 Throwable 捕获，确保插件异常绝不阻断业务请求。
 📊 **列表展示**：实时显示 HTTP 方法、URL、状态码（颜色区分）、耗时、Body 大小。
 - 🔍 **关键词过滤**：支持通过 URL 关键词实时筛选请求。
-- 📄 **详情展示**：
-  - **Overview**: 基本请求信息汇总。
-  - **Request Headers**: 完整请求头信息。
-  - **Request Body**: 请求正文（支持 JSON 自动格式化）。
-  - **Response Headers**: 完整响应头信息。
-  - **Response Body**: 响应正文（支持 JSON 自动格式化，支持 gzip 自动解压）。
+- 📄 **聚合详情展示**：
+  - **请求 (Request)**: 聚合概览、请求头、请求体于一屏，无需频繁切换。
+  - **响应 (Response)**: 聚合响应头、响应体（支持 JSON 格式化与 gzip 解压）。
+- 📑 **一键点击复制**：详情页任何位置点击即可复制当前 Tab 的全部文本内容。
 - 🔘 **悬浮窗入口**：全局悬浮按钮（可拖拽），带未读数角标，点击直达日志列表。
 - 🧹 **一键清空**：随时清理内存中的历史记录。
 - 🌑 **暗黑模式**：酷炫的暗黑 UI 设计，视觉体验极佳。
@@ -48,7 +46,7 @@ dependencyResolutionManagement {
 
 ```kotlin
     // 使用最新的稳定版
-    implementation("com.github.martor-sv:AndroidNetworkLogPlugin:1.0.5")
+    implementation("com.github.martor-sv:AndroidNetworkLogPlugin:1.0.6")
 }
 ```
 

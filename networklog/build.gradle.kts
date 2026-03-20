@@ -12,7 +12,7 @@ afterEvaluate {
                 // 发布坐标配置
                 groupId = "com.github.wang"   // 用于 JitPack 的建议 ID，可修改
                 artifactId = "networklog"
-                version = "1.0.5"
+                version = "1.0.6"
 
                 // 添加 pom 信息（可选，有助于发布到公共仓库）
                 pom {
