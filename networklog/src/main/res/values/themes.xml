@@ -6,8 +6,9 @@
         <item name="colorPrimaryDark">@color/net_bg</item>
         <item name="colorAccent">@color/net_accent</item>
         <item name="android:windowBackground">@color/net_bg</item>
-        <item name="tabTextColor">#AAAAAA</item>
-        <item name="tabSelectedTextColor">#FFFFFF</item>
+        <item name="tabTextColor">#FFFFFF</item>
+        <item name="tabSelectedTextColor">@color/net_accent</item>
         <item name="tabIndicatorColor">@color/net_accent</item>
+        <item name="titleTextColor">#FFFFFF</item>
     </style>
 </resources>

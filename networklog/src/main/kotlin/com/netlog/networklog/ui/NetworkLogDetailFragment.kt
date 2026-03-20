@@ -1,10 +1,13 @@
 package com.netlog.networklog.ui
 
 import android.os.Bundle
+import android.content.ClipboardManager
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.netlog.networklog.R
 import com.netlog.networklog.model.NetworkRecord
@@ -49,13 +52,29 @@ class NetworkLogDetailFragment : Fragment() {
         val record = NetworkLogRepository.getRecord(recordId) ?: return
 
         val tvContent = view.findViewById<TextView>(R.id.tv_content)
-        tvContent.text = when (position) {
-            0 -> buildOverview(record)
-            1 -> buildHeaders(record.requestHeaders)
-            2 -> buildBody(record.requestBody)
-            3 -> buildHeaders(record.responseHeaders)
-            4 -> buildBody(record.responseBody)
+        val textContent = when (position) {
+            0 -> buildString {
+                append(buildOverview(record))
+                appendLine("\n[Headers]")
+                append(buildHeaders(record.requestHeaders))
+                appendLine("\n\n[Body]")
+                append(buildBody(record.requestBody))
+            }
+            1 -> buildString {
+                appendLine("[Headers]")
+                append(buildHeaders(record.responseHeaders))
+                appendLine("\n\n[Body]")
+                append(buildBody(record.responseBody))
+            }
             else -> ""
+        }
+        tvContent.text = textContent
+
+        // 点击复制
+        tvContent.setOnClickListener {
+            val cm = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            cm.setText(textContent)
+            Toast.makeText(requireContext(), "内容已复制到剪贴板", Toast.LENGTH_SHORT).show()
         }
     }
 

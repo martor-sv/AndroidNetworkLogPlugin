@@ -45,7 +45,7 @@ class NetworkLogDetailActivity : AppCompatActivity() {
         val tabLayout = findViewById<TabLayout>(R.id.tab_layout)
         val viewPager = findViewById<ViewPager2>(R.id.view_pager)
 
-        val tabs = listOf("概览", "请求头", "请求体", "响应头", "响应体")
+        val tabs = listOf("请求", "响应")
         viewPager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount() = tabs.size
             override fun createFragment(position: Int): Fragment {
