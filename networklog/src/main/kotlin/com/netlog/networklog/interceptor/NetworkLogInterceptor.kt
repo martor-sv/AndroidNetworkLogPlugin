@@ -6,7 +6,7 @@ import okhttp3.Interceptor
 import okhttp3.MediaType
 import okhttp3.Response
 import okhttp3.ResponseBody
-import okhttp3.internal.http.promisesBody
+// 移除 internal 依赖以增强版本兼容性
 import okio.Buffer
 import okio.GzipSource
 import okio.buffer
@@ -34,9 +34,11 @@ class NetworkLogInterceptor : Interceptor {
             }
         }
 
-        // 构建请求头 Map
+        // 构建请求头 Map（使用传统循环以兼容 OkHttp 3.x）
         val requestHeaders = mutableMapOf<String, String>()
-        request.headers.forEach { (name, value) -> requestHeaders[name] = value }
+        for (i in 0 until request.headers.size) {
+            requestHeaders[request.headers.name(i)] = request.headers.value(i)
+        }
 
         val record = NetworkRecord(
             method = request.method,
@@ -52,13 +54,15 @@ class NetworkLogInterceptor : Interceptor {
             val endTime = System.currentTimeMillis()
 
             // 读取响应体（不消耗原始流）
-            val responseBodyString = if (response.promisesBody()) {
+            val responseBodyString = if (shouldHasBody(response)) {
                 readResponseBody(response)
             } else null
 
             // 构建响应头 Map
             val responseHeaders = mutableMapOf<String, String>()
-            response.headers.forEach { (name, value) -> responseHeaders[name] = value }
+            for (i in 0 until response.headers.size) {
+                responseHeaders[response.headers.name(i)] = response.headers.value(i)
+            }
 
             NetworkLogRepository.updateRecord(record.id) { rec ->
                 rec.statusCode = response.code
@@ -136,5 +140,16 @@ class NetworkLogInterceptor : Interceptor {
         } catch (e: EOFException) {
             false
         }
+    }
+
+    private fun shouldHasBody(response: Response): Boolean {
+        if (response.request.method == "HEAD") return false
+        val code = response.code
+        if ((code < 200 || code == 204 || code == 304) && response.header("Content-Length") == null &&
+            !"chunked".equals(response.header("Transfer-Encoding"), ignoreCase = true)
+        ) {
+            return false
+        }
+        return true
     }
 }
